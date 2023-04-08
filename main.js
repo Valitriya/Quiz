@@ -135,28 +135,90 @@ let questionIndex = 0;
 
 clearWindow();
 showQuestion();
+submitBtn.onclick = checkAnswer;
 
 function clearWindow() {
 	headerContainer.innerHTML = '';
 	listContainer.innerHTML = '';
 }
 
-
 function showQuestion() {
 	const headerTemplate = `<h2 class="title">%title%</h2>`;
 	const title = headerTemplate.replace('%title%', questions[questionIndex]['question']);
 	headerContainer.innerHTML = title;
 
-	questions[questionIndex]['question']
+	let answerNumber = 1;
 	for(answerText of questions[questionIndex]['answers']){
 		const questionTemplate = `
 			<li>
 				<label>
-					<input type="radio" class="answer" name="answer" />
+					<input type="radio" class="answer" name="answer" value="%number%" />
 					<span>%answer%</span>
 				</label>
 			</li>`
-		const answerHTML = questionTemplate.replace('%answer%', answerText);
+		const answerHTML = questionTemplate
+							.replace('%answer%', answerText)
+							.replace('%number%', answerNumber)
 		listContainer.innerHTML += answerHTML;
+
+		answerNumber++;
 	}
 }
+
+function checkAnswer(){
+	const checkedRadio = listContainer.querySelector('input[type="radio"]:checked');
+
+	if(!checkedRadio) {
+		submitBtn.blur();
+		return
+	}
+	const userAnswer = parseInt(checkedRadio.value);
+
+	if(userAnswer === questions[questionIndex]['correct']){
+		score++;
+	}
+
+	if(questionIndex !== questions.length - 1 ){
+		questionIndex++;
+		clearWindow();
+		showQuestion();
+	} else {
+		clearWindow();
+		showResults();
+	}
+}
+
+function showResults() {
+	const resultsTemplate = `
+		<h2 class='title'>%title%</h2>
+		<h3 class='summary'>%message%</h3>
+		<p class='result'>%result%</p>
+		`;
+	let title, message;
+	if(score === questions.length){
+		title = 'Красава 💋!'
+		message = 'Все ответы верны, задрот(ка) 🤓'
+	} else if((score * 100) / questions.length >= 50){
+		title = 'Ну так себе результат 😐'
+		message = 'Мог(ла) бы и получше 🙄'
+	}else {
+		title = 'Мда 🤐'
+		message = 'Иди учи 🤣'
+	}
+
+	let result = `${score} из ${questions.length}`;
+
+	const finalMessage = resultsTemplate
+						.replace('%title%', title)
+						.replace('%message%', message)
+						.replace('%result%', result)
+
+	headerContainer.innerHTML = finalMessage;
+
+	submitBtn.blur();
+	submitBtn.innerText = 'Начать заново';
+	submitBtn.onclick = () => history.go();
+}
+
+
+
